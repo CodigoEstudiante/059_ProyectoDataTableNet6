@@ -1,0 +1,237 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@*
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+*@
+
+@*GOOGLEAR CARD BOOTSTRAP 5*@
+@section Estilos{
+    
+    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css"  rel="stylesheet" />
+
+    @*ESTILOS DE BOTONES*@
+    <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css"  rel="stylesheet" />
+
+
+     @*filter columns*@
+    <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css"  rel="stylesheet" />
+
+    <style>
+
+        thead input {
+            width: 100%;
+            background-color: #FFFFCC !important
+        }
+
+        .btn-exportar-excel {
+            background-color: #198754 !important;
+            color: white !important;
+        }
+
+        .btn-exportar-pdf {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+
+        .btn-exportar-print {
+            background-color: #00a7c9 !important;
+            color: white !important;
+        }
+        
+    </style>
+}
+
+<div class="card">
+  <div class="card-header">
+    Empleados
+  </div>
+  <div class="card-body">
+
+      <div class="row">
+          <div class="col-sm-12">
+
+              @*<table class="table table-bordered" id="tb_empleados">*@
+              <table class="display" id="tb_empleados" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th>IdEmpleado</th>
+                      <th>Nombre</th>
+                      <th>Cargo</th>
+                      <th>Oficina</th>
+                      <th>Salario</th>
+                      <th>Telefono</th>
+                      <th>Fecha Ingreso</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+
+          </div>
+      </div>
+
+
+  </div>
+</div>
+
+@section Scripts{
+
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+    @*SCRIPTS DE BOTONES*@
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+
+    @*excel*@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+
+    @*pdf*@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+
+    @*imprimir*@
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+
+
+
+     @*filter columns*@
+    <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
+
+
+
+
+
+    <script>
+
+        $(document).ready(function() {
+
+             $('#tb_empleados thead tr').clone(true).addClass('filters').appendTo('#tb_empleados thead');
+
+
+            $('#tb_empleados').DataTable({
+                //_______________PRIMERO____________
+                "ajax": {
+                    "url": '@Url.Action("ListaEmpleados", "Home")',
+                    "type": "GET",
+                    "datatype": "json"
+                },
+                "columns": [
+                    { "data": "idEmpleado" },
+                    { "data": "nombre" },
+                    { "data": "cargo" },
+                    { "data": "oficina" },
+                    { "data": "salario" },
+                    { "data": "telefono" },
+                    { "data": "fechaIngreso" }
+                ],
+                //________________ SEGUNDO ____________
+                language:{
+                    url:"https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json"
+                },
+                //________________ TERCERO ____________
+                columnDefs:[
+                    {
+                        targets: 0,
+                        visible:false
+                    }
+                ],
+                //_______________ CUARTO ______________
+                dom: 'Bfrtip',
+                buttons: [
+                    //'excel',
+                    {
+                        extend: 'excelHtml5',
+                        text: 'Exportar Excel',
+                        filename: 'Reporte Empleados',
+                        title: '',
+                        exportOptions: {
+                            columns: [ 1,2,3,4,5,6 ]
+                        },
+                        className: 'btn-exportar-excel',
+                    },
+                    //'pdf',
+                    {
+                        extend: 'pdfHtml5',
+                        text: 'Exportar PDF',
+                        filename: 'Reporte Empleados',
+                        title: '',
+                        exportOptions: {
+                            columns: [ 1,2,3,4,5,6 ]
+                        },
+                        className: 'btn-exportar-pdf',
+                    },
+                    //'print'
+                    {
+                        extend: 'print',
+                        title: '',
+                        exportOptions: {
+                            columns: [ 1,2,3,4,5,6 ]
+                        },
+                        className:'btn-exportar-print'
+
+                    },
+                    //extra
+                    'pageLength'
+                ],
+                //______________ QUINTO _______________
+                orderCellsTop: true,
+                fixedHeader: true,
+                initComplete: function () {
+                    var api = this.api();
+ 
+                    // For each column
+                    api.columns().eq(0).each(function (colIdx) {
+
+                            // Set the header cell to contain the input element
+                            var cell = $('.filters th').eq( $(api.column(colIdx).header()).index() );
+
+                            var title = $(cell).text();
+
+                            //$(cell).html('<input type="text" placeholder="' + title + '" />');
+                            $(cell).html('<input type="text" placeholder="Buscar..." />');
+ 
+                            // On every keypress in this input
+                            $('input', $('.filters th').eq($(api.column(colIdx).header()).index()) ).off('keyup change').on('keyup change', function (e) {
+
+                                    e.stopPropagation();
+ 
+                                    // Get the search value
+                                    $(this).attr('title', $(this).val());
+                                    var regexr = '({search})'; //$(this).parents('th').find('select').val();
+ 
+                                    var cursorPosition = this.selectionStart;
+                                    // Search the column for that value
+                                    api
+                                        .column(colIdx)
+                                        .search(
+                                            this.value != ''
+                                                ? regexr.replace('{search}', '(((' + this.value + ')))')
+                                                : '',
+                                            this.value != '',
+                                            this.value == ''
+                                        )
+                                        .draw();
+ 
+                                    $(this)
+                                        .focus()[0]
+                                        .setSelectionRange(cursorPosition, cursorPosition);
+                                });
+                        });
+                },
+
+                //extra
+                //searching: false
+
+
+
+            });
+
+
+
+        } );
+    </script>
+}
